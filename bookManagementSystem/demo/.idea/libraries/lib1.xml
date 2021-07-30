@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="lib1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/animatefx-1.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/tilesfx-1.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/controlsfx-8.40.14.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/GNButton-1.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/GNAvatarView-1.0-rc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/jfoenix-8.0.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/GNDecorator-2.1.2-alpha.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/colors-1.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/GNCarousel-2.1.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/GNCalendar-1.0-alpha.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/fontawesomefx-8.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/nodelibrary_test/lib/scenicView.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

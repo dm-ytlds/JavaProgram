@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/nodelibrary/nodelibrary.iml" filepath="$PROJECT_DIR$/nodelibrary/nodelibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nodelibrary_test/nodelibrary_test.iml" filepath="$PROJECT_DIR$/nodelibrary_test/nodelibrary_test.iml" />
+    </modules>
+  </component>
+</project>
