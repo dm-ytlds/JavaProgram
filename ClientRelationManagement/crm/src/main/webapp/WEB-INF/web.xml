@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>crm</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+
+  <!--做一些操作约定：
+      add/create：跳转到添加页，或者打开添加操作的模态窗口；
+      save：执行添加操作；
+      edit：跳转到修改页，或者打开修改操作的模态窗口；
+      update：执行修改操作；
+      get：执行查询操作；
+  -->
+
+
+
+  <!--编码过滤器-->
+  <filter>
+    <filter-name>EncodingFilter</filter-name>
+    <filter-class>com.demi.crm.web.filter.EncodingFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>EncodingFilter</filter-name>
+    <url-pattern>*.do</url-pattern>
+  </filter-mapping>
+
+ <!-- 登录过滤器-->
+  <filter>
+    <filter-name>LoginFilter</filter-name>
+    <filter-class>com.demi.crm.web.filter.LoginFilter</filter-class>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>LoginFilter</filter-name>
+    <!--过滤的文件路径-->
+    <!--*.do：过滤所有后端操作-->
+    <url-pattern>*.do</url-pattern>
+    <!--*.jsp：过滤所有前端页面-->
+    <url-pattern>*.jsp</url-pattern>
+<!--    <url-pattern>/*</url-pattern>-->
+  </filter-mapping>
+  <!--用户控制器-->
+  <servlet>
+    <servlet-name>UserController</servlet-name>
+    <servlet-class>com.demi.crm.settings.web.controller.UserController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserController</servlet-name>
+    <url-pattern>/settings/user/login.do</url-pattern>
+  </servlet-mapping>
+  <!--市场活动控制器-->
+  <servlet>
+    <servlet-name>ActivityController</servlet-name>
+    <servlet-class>com.demi.crm.workbench.web.controller.ActivityController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ActivityController</servlet-name>
+    <!--按照前端所给的目录来写-->
+    <url-pattern>/workbench/activity/getUserList.do</url-pattern>
+  </servlet-mapping>
+  
+  
+  
+</web-app>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

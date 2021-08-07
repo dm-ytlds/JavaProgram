@@ -7,4 +7,7 @@ public class PathConstant {
     public static final String USER_PATH = "user/user.txt";
     // 图书信息路径
     public static final String BOOK_PATH = "book/book.txt";
+    // 图书借阅路径
+    public static final String LEND_PATH = "lend/lend.txt";
+
 }

@@ -3,6 +3,8 @@ package com.demi.module.user;
 import com.demi.bean.Constant;
 import com.demi.bean.User;
 import com.demi.global.util.Alerts;
+import com.demi.service.UserService;
+import com.demi.service.impl.UserServiceImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -21,23 +23,17 @@ public class UserChargeViewCtrl {
 
     private TableView<User> userTableView;
 
+    private UserService userService = new UserServiceImpl();
     /*
         充值
      */
     @FXML
     private void charge() {
         try {
-            //获取充值之前的余额
-            BigDecimal before = user.getMoney();
+
             //本次充值的金额
             BigDecimal money = new BigDecimal(moneyField.getText());
-            //计算充值之后余额是否大于0
-            BigDecimal after = before.add(money);
-
-            if (after.compareTo(BigDecimal.ZERO) >= 0) {
-                //修改用户状态
-                user.setStatus(Constant.USER_OK);
-            }
+            user = userService.charge(user, money);
             userTableView.refresh();
             stage.close();
             Alerts.success("成功", "操作成功");

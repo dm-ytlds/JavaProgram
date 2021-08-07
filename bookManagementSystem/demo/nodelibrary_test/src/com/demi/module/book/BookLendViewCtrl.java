@@ -1,5 +1,7 @@
 package com.demi.module.book;
 
+import com.demi.service.LendService;
+import com.demi.service.impl.LendServiceImpl;
 import com.gn.App;
 import com.demi.bean.Book;
 import com.demi.bean.Constant;
@@ -9,6 +11,7 @@ import com.demi.module.user.UserSelectViewCtrl;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
@@ -41,6 +44,11 @@ public class BookLendViewCtrl {
     //借阅者
     private User user;
 
+    // 实例化借阅管理服务
+    LendService lendService = new LendServiceImpl();
+
+    // 用户刷新页面，需要实现set和get方法
+    private TableView<Book> bookTableView;
 
     @FXML
     private void closeView() {
@@ -49,13 +57,14 @@ public class BookLendViewCtrl {
 
     @FXML
     private void add() {
-        Lend lend = new Lend();
-        LocalDate now = LocalDate.now();
-        lend.setId(5);
-        lend.setLendDate(now);
-        lend.setReturnDate(now.plusDays(30));
-        lend.setStatus(Constant.LEND_LEND);
+        // 调用借阅管理层的添加方法
+        lendService.add(Integer.parseInt(userIdField.getText()), Integer.parseInt(bookIdField.getText()));
 
+        // 修改在页面上展示的图书状态和用户借阅状态
+        book.setStatus(Constant.STATUS_LEND);
+        user.setLend(true);
+        // 还需要刷新页面
+        bookTableView.refresh();
         stage.close();
     }
 
@@ -108,5 +117,13 @@ public class BookLendViewCtrl {
         this.user = user;
         userIdField.setText(String.valueOf(user.getId()));
         userNameField.setText(user.getName());
+    }
+
+    public TableView<Book> getBookTableView() {
+        return bookTableView;
+    }
+
+    public void setBookTableView(TableView<Book> bookTableView) {
+        this.bookTableView = bookTableView;
     }
 }

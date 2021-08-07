@@ -1,7 +1,12 @@
 package com.demi.module.lend;
 
+import com.demi.service.BookService;
+import com.demi.service.LendService;
+import com.demi.service.UserService;
+import com.demi.service.impl.BookServiceImpl;
+import com.demi.service.impl.LendServiceImpl;
+import com.demi.service.impl.UserServiceImpl;
 import com.gn.App;
-import com.demi.bean.Book;
 import com.demi.bean.Constant;
 import com.demi.bean.Lend;
 import com.demi.bean.User;
@@ -27,7 +32,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -62,12 +69,73 @@ public class LendViewCtrl implements Initializable {
 
     ObservableList<Lend> lends = FXCollections.observableArrayList();
 
+    // 实例化借阅服务层
+    LendService lendService = new LendServiceImpl();
+
+    // 实例化用户管理层
+    UserService userService = new UserServiceImpl();
+
+    // 实例化图书管理层
+    BookService bookService = new BookServiceImpl();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Book book = new Book(1, "java实战入门", "张三", Constant.TYPE_COMPUTER, "12-987", "XX出版社", Constant.STATUS_STORAGE);
+        List<Lend> lendList = lendService.query(null);
+        // 判断是否逾期归还书籍
+        lendList.forEach(lend -> {
+            // 拿到归还日期
+            LocalDate returnDate = lend.getReturnDate();
+            // 获取当前日期
+             LocalDate now = LocalDate.now();
+            // 修改当前日期，测试计算效果
+//            LocalDate now = LocalDate.parse("2021-09-01");
+
+            // 计算时间差
+            Period period = Period.between(returnDate, now);
+
+            // 查看用户余额
+            User user = lend.getUser();
+            BigDecimal money = user.getMoney();
+            BigDecimal delay;
+            if (period.getDays() >= 1) {
+                /*
+                    逾期规则：
+                        如果超过30天，则扣款30元；
+                        如果没有超过30天，则超出1天扣1元；
+                        判断当前用户的余额是否大于0，如果小于0，则将用户状态改为冻结。
+
+                 */
+                // 计算滞纳金
+                if (period.getDays() >= 30) {
+                    delay = new BigDecimal("30");
+                } else
+                    delay = new BigDecimal(period.getDays());
+                // 扣款
+                user.setMoney(money.subtract(delay));
+                // 将归还日期改为当天
+                lend.setReturnDate(now);
+                // 判断用户余额
+                if (BigDecimal.ZERO.compareTo(user.getMoney()) >= 0) {
+                    user.setStatus(Constant.USER_FROZEN);
+                }
+                // 更改界面数据
+                lend.setUser(user);
+
+                // 刷新界面
+//                bookTableView.refresh();
+//                userTableView.refresh();
+                // 调用service层，更新文件中的数据
+                userService.update(user);
+                lendService.update(lend);
+            }
+        });
+
+
+        lends.addAll(lendList);
+        /*Book book = new Book(1, "java实战入门", "张三", Constant.TYPE_COMPUTER, "12-987", "XX出版社", Constant.STATUS_STORAGE);
         User user = new User(1, "张三", "正常", new BigDecimal(("100")));
         LocalDate now = LocalDate.now();
-        lends.add(new Lend(1,book,user, Constant.LEND_LEND, now,now.plusDays(30)));
+        lends.add(new Lend("1",book,user, Constant.LEND_LEND, now,now.plusDays(30)));*/
 
         c1.setCellValueFactory(new PropertyValueFactory<>("id"));
         //获取图书名称
@@ -84,7 +152,6 @@ public class LendViewCtrl implements Initializable {
         c6.setCellValueFactory(new PropertyValueFactory<>("returnDate"));
         c7.setCellValueFactory(new PropertyValueFactory<>("status"));
         lendTableView.setItems(lends);
-
     }
 
 
@@ -109,7 +176,7 @@ public class LendViewCtrl implements Initializable {
 //            }
         }
 
-        lends = new ObservableListWrapper<Lend>(new ArrayList<Lend>(result));
+        lends = new ObservableListWrapper<>(new ArrayList<>(result));
         lendTableView.setItems(lends);
     }
 
@@ -123,8 +190,12 @@ public class LendViewCtrl implements Initializable {
             Alerts.warning("未选择","请先选择要归还的书籍");
             return;
         }
-        lend.setStatus(Constant.LEND_RETURN);
-        lend.setReturnDate(LocalDate.now());
+        List<Lend> lendList= lendService.returnBook(lend);
+        lends = new ObservableListWrapper<>(new ArrayList<>(lendList));
+        // 更新借阅管理界面
+        lendTableView.setItems(lends);
+//        // 更新图书管理界面
+//        bookTableView.refresh();
     }
 
     /*
@@ -154,6 +225,7 @@ public class LendViewCtrl implements Initializable {
 
         Stage stage = new Stage();//创建舞台；
         LendHandleViewCtrl controller = (LendHandleViewCtrl)loader.getController();
+
         controller.setStage(stage);
         controller.setLends(lends);
         controller.setLend(lend);
@@ -167,4 +239,5 @@ public class LendViewCtrl implements Initializable {
         stage.setScene(scene); //将场景载入舞台；
         stage.show(); //显示窗口；
     }
+
 }

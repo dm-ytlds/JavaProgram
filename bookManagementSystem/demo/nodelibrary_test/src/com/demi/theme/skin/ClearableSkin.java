@@ -37,19 +37,19 @@ public class ClearableSkin extends SkinAction {
 
     @Override
     void textChanged() {
-        if(!getTextField().isFocused() && getTextField().getText() == null )
+        if (!getTextField().isFocused() && getTextField().getText() == null)
             return;
         getButton().setVisible(getTextField().isFocused() && !getTextField().getText().isEmpty());
     }
 
     @Override
     void focusChanged() {
-        if(!getTextField().isFocused() && getTextField().getText() == null )
+        if (!getTextField().isFocused() && getTextField().getText() == null)
             return;
         getButton().setVisible(getTextField().isFocused() && !getTextField().getText().isEmpty());
     }
 
-    private void altCursor(){
+    private void altCursor() {
         getButton().setCursor(
                 getButton().isVisible()
                         ? Cursor.HAND : Cursor.DEFAULT

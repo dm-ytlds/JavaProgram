@@ -1,14 +1,17 @@
 package com.demi.utils;
 
-import com.demi.bean.Book;
-import com.demi.bean.Constant;
-import com.demi.bean.PathConstant;
-import com.demi.bean.User;
+import com.demi.bean.*;
+import com.demi.dao.BookDao;
+import com.demi.dao.LendDao;
+import com.demi.dao.impl.BookDaoImpl;
+import com.demi.dao.impl.LendDaoImpl;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /*
     用户数据管理
@@ -16,17 +19,43 @@ import java.util.List;
 public class InitDataUtil {
     public static void main(String[] args) {
         // test
-//        // 初始化用户数据
-//        List<User> userList = new ArrayList<>();
-//        userList.add(new User(1001, "demi", Constant.USER_OK, new BigDecimal(100)));
-//        userList.add(new User(1002, "lee", Constant.USER_FROZEN, BigDecimal.TEN));
-//        initData(PathConstant.USER_PATH, userList);
+        // 初始化用户数据
+        List<User> userList = new ArrayList<>();
+        userList.add(new User(2021001, "demi", Constant.USER_OK, new BigDecimal(100), false));
+        userList.add(new User(2021002, "lee", Constant.USER_FROZEN, BigDecimal.TEN, false));
+        userList.add(new User(2021003, "john", Constant.USER_OK, BigDecimal.ZERO, false));
+        initData(PathConstant.USER_PATH, userList);
 
         // 初始化图书数据
         List<Book> bookList = new ArrayList<>();
         bookList.add(new Book(01, "Java基础教程", "demi", Constant.TYPE_COMPUTER, "001-001", "xiHua University", Constant.STATUS_STORAGE));
         bookList.add(new Book(02, "Java进阶教程", "ddemi", Constant.TYPE_COMPUTER, "001-002", "qingHua University", Constant.STATUS_STORAGE));
         initData(PathConstant.BOOK_PATH, bookList);
+
+        // 初始化图书借阅数据
+        List<Lend> lendList = new ArrayList<>();
+        // 借阅人
+        User user = new User(1001, "demi", Constant.USER_OK, new BigDecimal(100), false);
+        // 借阅书籍
+        Book book = new Book(01, "Java基础教程", "demi", Constant.TYPE_COMPUTER, "001-001", "xiHua University", Constant.STATUS_STORAGE);
+        Lend lend = new Lend();
+        // 使用UUID生成借阅编号
+        lend.setId(UUID.randomUUID().toString());
+        lend.setBook(book);
+        lend.setUser(user);
+        lend.setStatus(Constant.LEND_LEND);
+        // 更新图书管理文件中的图书状态
+        BookDao bookDao = new BookDaoImpl();
+        book.setStatus(Constant.STATUS_LEND);
+        bookDao.update(book);
+        // 出借日期
+        LocalDate begin = LocalDate.now();
+        lend.setLendDate(begin);
+        // 归还日期
+        lend.setReturnDate(begin.plusDays(30));
+        // 将借阅信息放入集合中
+        lendList.add(lend);
+        initData(PathConstant.LEND_PATH, lendList);
     }
 
    /* *//**

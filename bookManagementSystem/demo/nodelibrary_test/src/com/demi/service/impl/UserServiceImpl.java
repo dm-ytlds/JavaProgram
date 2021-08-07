@@ -1,17 +1,23 @@
 package com.demi.service.impl;
 
+import com.demi.bean.Constant;
+import com.demi.bean.Lend;
 import com.demi.bean.User;
+import com.demi.dao.LendDao;
 import com.demi.dao.UserDao;
-import com.demi.dao.impl.userDaoImpl;
+import com.demi.dao.impl.LendDaoImpl;
+import com.demi.dao.impl.UserDaoImpl;
 import com.demi.service.UserService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * 用户服务类
  */
 public class UserServiceImpl implements UserService {
-    UserDao userDao = new userDaoImpl();
+    UserDao userDao = new UserDaoImpl();
+    LendDao lendDao = new LendDaoImpl();
     /**
      * 查询功能
      * @return 查询结果
@@ -58,5 +64,46 @@ public class UserServiceImpl implements UserService {
     @Override
     public void frozen(int id) {
         userDao.frozen(id);
+    }
+
+    /**
+     * 查找可借书用户
+     * @return
+     */
+    @Override
+    public List<User> selectUserToLend() {
+        return userDao.selectUserToLend();
+    }
+
+    /**
+     * 用户充值
+     * @param user
+     * @param money
+     * @return
+     */
+    @Override
+    public User charge(User user, BigDecimal money) {
+        BigDecimal sum = money.add(user.getMoney());
+        // 判断充值后余额是否大于0
+        if (BigDecimal.ZERO.compareTo(sum) < 0) {
+            user.setStatus(Constant.USER_OK);
+        }
+
+        user.setMoney(sum);
+        // 更改用户文件中的数据
+        userDao.update(user);
+        // 还需要修改借阅记录中的用户数据
+        List<Lend> lendList = lendDao.query(null);
+        for (int i = 0; i < lendList.size(); i++) {
+            Lend lend = lendList.get(i);
+            if (lend.getUser().getId() == user.getId()) {
+                // 修改借阅记录中的用户数据
+                lend.setUser(user);
+                // 更新借阅数据
+                lendDao.update(lend);
+                break;
+            }
+        }
+        return user;
     }
 }

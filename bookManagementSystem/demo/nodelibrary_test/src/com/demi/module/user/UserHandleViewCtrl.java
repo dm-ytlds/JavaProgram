@@ -58,10 +58,9 @@ public class UserHandleViewCtrl {
                 populate(this.user);
                 // 修改代码调用
                 userService.update(user);
-                //刷新
-                userTableView.refresh();
             }
-
+            //刷新
+            userTableView.refresh();
             stage.close();
             Alerts.success("成功", "操作成功");
         } catch (Exception e) {

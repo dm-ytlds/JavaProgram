@@ -5,8 +5,10 @@ import com.demi.bean.User;
 import java.util.List;
 
 public interface UserDao {
+    // 用户查询
     List<User> select();
-
+    // 用户查询方法的重载
+    List<User> select(User user);
     // 添加用户数据
     void add(User user);
 
@@ -18,4 +20,6 @@ public interface UserDao {
 
     // 冻结用户。id即可
     void frozen(int id);
+
+    List<User> selectUserToLend();
 }

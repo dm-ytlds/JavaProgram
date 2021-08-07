@@ -28,7 +28,13 @@ public class BookDaoImpl implements BookDao {
                 } else {
                     // 存储符合条件的图书数据
                     List<Book> conditionList =new ArrayList<>();
+
                     // 根据条件，找到要查找的图书数据
+                    // 根据图书编号查询（方便后面的借阅记录添加）
+                    if (!(0 == book.getId())) {
+                        conditionList = bookList.stream().filter(b -> b.getId() == book.getId()).collect(Collectors.toList());
+                        return conditionList;
+                    }
                     // 1.先做两个条件同时输入的查询操作
                     if (!"".equals(book.getBookName()) && !"".equals(book.getIsbn())) {
                         conditionList = bookList.stream().filter(b -> b.getBookName().equals(book.getBookName())).collect(Collectors.toList());

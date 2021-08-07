@@ -3,6 +3,8 @@ package com.demi.module.user;
 import com.demi.bean.User;
 import com.demi.global.util.Alerts;
 import com.demi.module.book.BookLendViewCtrl;
+import com.demi.service.UserService;
+import com.demi.service.impl.UserServiceImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -14,6 +16,7 @@ import javafx.stage.Stage;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -36,12 +39,13 @@ public class UserSelectViewCtrl implements Initializable {
 
     private BookLendViewCtrl bookLendViewCtrl;
 
+    private UserService userService = new UserServiceImpl();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        users.add(new User(1, "张三", "正常", new BigDecimal(("100"))));
-        users.add(new User(2, "李四", "正常", new BigDecimal(("100"))));
-        users.add(new User(3, "王五", "正常", new BigDecimal(("100"))));
+        // 展示所有可借书的用户
+        List<User> userList = userService.selectUserToLend();
+        users.addAll(userList);
         c1.setCellValueFactory(new PropertyValueFactory<>("id"));
         c2.setCellValueFactory(new PropertyValueFactory<>("name"));
         userTableView.setItems(users);
@@ -55,7 +59,7 @@ public class UserSelectViewCtrl implements Initializable {
             Alerts.warning("未选择","请先选择用户");
             return;
         }
-
+        userService.select();
         bookLendViewCtrl.setUser(user);
 
         stage.close();

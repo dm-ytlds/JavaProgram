@@ -92,8 +92,8 @@ public class BookViewCtrl implements Initializable {
     private void lendBook() {
         try {
             Book book = this.bookTableView.getSelectionModel().getSelectedItem();
-            if (book == null){
-                Alerts.warning("未选择","请先选择要借阅的书籍");
+            if (book == null || Constant.STATUS_LEND.equals(book.getStatus())){
+                Alerts.warning("未选择或选择有误","请选择可借阅的书籍");
                 return;
             }
 
@@ -181,6 +181,8 @@ public class BookViewCtrl implements Initializable {
 
         Stage stage = new Stage();//创建舞台；
         BookLendViewCtrl controller = (BookLendViewCtrl)loader.getController();
+        // 将刷新后的数据传入图书管理页面
+        controller.setBookTableView(bookTableView);
         controller.setStage(stage);
         controller.setBook(book);
         stage.setHeight(800);
