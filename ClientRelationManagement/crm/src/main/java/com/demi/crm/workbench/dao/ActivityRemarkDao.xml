@@ -4,6 +4,20 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.demi.crm.workbench.dao.ActivityRemarkDao">
-
-
+    <!--需要删除的备注数量-->
+    <select id="getCountByIds" resultType="int">
+        select count(*) from tbl_activity_remark
+        where activityId in
+        <foreach collection="array" item="aid" open="(" close=")" separator=",">
+            #{aid}
+        </foreach>
+    </select>
+    <!--删除备注，即实际删除数量-->
+    <delete id="deleteByIds">
+        delete from tbl_activity_remark
+        where activityId in
+        <foreach collection="array" item="aid" open="(" close=")" separator=",">
+            #{aid}
+        </foreach>
+    </delete>
 </mapper>

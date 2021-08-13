@@ -4,8 +4,146 @@
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.demi.crm.workbench.dao.ActivityDao">
+    <!--创建市场活动得到的数据，存入数据库操作-->
+    <insert id="save">
+        insert into tbl_activity (
+            id,
+            owner,
+            name,
+            startDate,
+            endDate,
+            cost,
+            description,
+            createTime,
+            createBy
+        )
+        values (
+            #{id},
+            #{owner},
+            #{name},
+            #{startDate},
+            #{endDate},
+            #{cost},
+            #{description},
+            #{createTime},
+            #{createBy}
+               )
+    </insert>
 
-	
+    <!--条件查询数据库中的数据，用于市场活动信息列表分页展示-->
+    <!--
+        xml文件中，大于和小于符号容易和标签中的 '>'产生歧义，所以需要使用特定的转义字符。
+           大于：&gt; 小于：&lt;
+        可能传过来的值都没有，所以使用动态SQL语句<where></where>
+
+        order by活动越靠后，说明活动越新，所以降序
+
+        limit分页
+    -->
+    <select id="getActivityByCondition" resultType="Activity">
+        select
+            a.id,
+            a.name,
+            u.name as owner,
+            a.startDate,
+            a.endDate
+        from tbl_activity a
+        join tbl_user u
+        on a.owner = u.id
+
+        <where>
+            <if test="name!=null and name!=''">
+                a.name like '%' #{name} '%'
+            </if>
+            <if test="owner!=null and owner!=''">
+                and u.name like '%' #{owner} '%'
+            </if>
+
+            <if test="startDate!=null and startDate!=''">
+                and a.startDate &gt; #{startDate}
+            </if>
+            <if test="endDate!=null and endDate!=''">
+                and a.endDate &lt; #{endDate}
+            </if>
+        </where>
+
+        order by a.createTime desc
+
+        limit #{skipCount}, #{pageSize}
+
+    </select>
+    <!--取出市场活动信息列表的总记录数-->
+    <select id="getTotalByCondition" resultType="int">
+        select count(*)
+        from tbl_activity a
+        join tbl_user u
+        on a.owner = u.id
+        <where>
+            <if test="name!=null and name!=''">
+                a.name like '%' #{name} '%'
+            </if>
+            <if test="owner!=null and owner!=''">
+                and u.name like '%' #{owner} '%'
+            </if>
+            <if test="startDate!=null and startDate!=''">
+                and a.startDate &gt;= #{startDate}
+            </if>
+            <if test="endDate!=null and endDate!=''">
+                and a.endDate &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+	<!--删除市场活动的历史记录-->
+    <!--对ids数组用foreach遍历-->
+    <delete id="delete">
+        delete from tbl_activity
+        where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--通过id获取市场活动信息-->
+    <select id="getById" resultType="Activity">
+        select * from tbl_activity
+        where   id = #{id}
+    </select>
+
+    <!--修改市场活动信息-->
+    <update id="update">
+        update tbl_activity set
+            owner = #{owner},
+            name = #{name},
+            startDate = #{startDate},
+            endDate = #{endDate},
+            cost = #{cost},
+            description = #{description},
+            editTime = #{editTime},
+            editBy = #{editBy}
+        where id = #{id}
+
+    </update>
+
+    <!--根据市场活动id，查详细信息。注意：区别于getById()方法，其中这里需要根据市场活动中的owner到用户表中查到该用户的姓名-->
+    <select id="detail" resultType="Activity">
+        select
+            a.id,
+            a.name,
+            u.name as owner,
+            a.startDate,
+            a.endDate,
+            a.cost,
+            a.description,
+            a.createTime,
+            a.createBy,
+            a.editTime,
+            a.editBy
+
+        from tbl_activity a
+        join tbl_user u
+        on a.owner = u.id
+        where a.id = #{id}
+    </select>
 </mapper>
 
 

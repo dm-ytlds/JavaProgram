@@ -31,7 +31,7 @@ public class LoginFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        String requestURI = request.getRequestURI();
+//        String requestURI = request.getRequestURI();
 //        System.out.println(requestURI);
         String servletPath = request.getServletPath();
 //        System.out.println(servletPath);
@@ -43,6 +43,7 @@ public class LoginFilter implements Filter {
         } else {
             HttpSession session = request.getSession();
             User user = (User) session.getAttribute("user");
+
             if (user != null) {
                 // 说明用户登录过
                 filterChain.doFilter(servletRequest, servletResponse);

@@ -59,6 +59,22 @@
     <servlet-name>ActivityController</servlet-name>
     <!--按照前端所给的目录来写-->
     <url-pattern>/workbench/activity/getUserList.do</url-pattern>
+    <!--添加保存操作-->
+    <url-pattern>/workbench/activity/save.do</url-pattern>
+    <!--分页查询操作-->
+    <url-pattern>/workbench/activity/pageList.do</url-pattern>
+    <!--删除市场活动条目-->
+    <url-pattern>/workbench/activity/delete.do</url-pattern>
+    <!--修改市场活动条目
+        获取用户信息列表，以及单条市场活动信息
+    -->
+    <url-pattern>/workbench/activity/getUserListAndActivity.do</url-pattern>
+    <!--修改后更新市场活动的操作-->
+    <url-pattern>/workbench/activity/update.do</url-pattern>
+    <!--跳转到市场活动详情页-->
+    <url-pattern>/workbench/activity/detail.do</url-pattern>
+    <!--获取市场活动的备注信息-->
+    <url-pattern>/workbench/activity/getRemarkListByAid.do</url-pattern>
   </servlet-mapping>
   
   
