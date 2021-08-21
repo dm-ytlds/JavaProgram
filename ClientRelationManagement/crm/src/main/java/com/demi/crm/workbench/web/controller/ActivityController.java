@@ -10,6 +10,7 @@ import com.demi.crm.utils.ServiceFactory;
 import com.demi.crm.utils.UUIDUtil;
 import com.demi.crm.vo.PaginationVO;
 import com.demi.crm.workbench.domain.Activity;
+import com.demi.crm.workbench.domain.ActivityRemark;
 import com.demi.crm.workbench.service.ActivityService;
 import com.demi.crm.workbench.service.impl.ActivityServiceImpl;
 import jakarta.servlet.ServletException;
@@ -46,8 +47,81 @@ public class ActivityController extends HttpServlet {
             update(req, resq);
         } else if ("/workbench/activity/detail.do".equals(path)) {
             detail(req, resq);
-        }
+        } else if ("/workbench/activity/getRemarkListByAid.do".equals(path)) {
+            getRemarkListByAid(req, resq);
+        } else if ("/workbench/activity/deleteRemark.do".equals(path)) {
+            deleteRemark(req, resq);
+        } else if ("/workbench/activity/saveRemark.do".equals(path)) {
+            saveRemark(req, resq);
+        } else if ("/workbench/activity/updateRemark.do".equals(path)) {
+            updateRemark(req, resq);
+        }/*else if ("/workbench/activity/updateActivityByDetailModal.do".equals(path)) {
+            updateActivityByDetailModal(req, resq);
+        }*/
+    }
 
+
+    private void updateRemark(HttpServletRequest req, HttpServletResponse resq) {
+        System.out.println("执行修改备注内容的操作");
+        String remarkId = req.getParameter("remarkId");
+        String noteContent = req.getParameter("noteContent");
+        String editTime = DateTimeUtil.getSysTime();
+        String editBy = ((User)req.getSession().getAttribute("user")).getName();
+        String editFlag = "1";
+        ActivityRemark ar = new ActivityRemark();
+        ar.setId(remarkId);
+        ar.setNoteContent(noteContent);
+        ar.setEditTime(editTime);
+        ar.setEditBy(editBy);
+        ar.setEditFlag(editFlag);
+        ActivityService aService = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+        boolean flag = aService.updateRemark(ar);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("success", flag);
+        map.put("ar", ar);
+        PrintJson.printJsonObj(resq, map);
+    }
+
+    private void saveRemark(HttpServletRequest req, HttpServletResponse resq) {
+        System.out.println("执行添加市场活动备注信息的操作");
+        String noteContent = req.getParameter("noteContent");
+        String activityId = req.getParameter("activityId");
+        String id = UUIDUtil.getUUID();
+        String createTime = DateTimeUtil.getSysTime();
+        String createBy = ((User) req.getSession().getAttribute("user")).getName();
+        String editFlag = "0";
+        // 封装到ActivityRemark对象中
+        ActivityRemark ar = new ActivityRemark();
+        ar.setId(id);
+        ar.setNoteContent(noteContent);
+        ar.setCreateTime(createTime);
+        ar.setCreateBy(createBy);
+        ar.setEditFlag(editFlag);
+        ar.setActivityId(activityId);
+        ActivityService aService = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+        boolean flag = aService.saveRemark(ar);
+        // 将信息返回给前端，用来展示添加的备注信息
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("success", flag);
+        map.put("ar", ar);
+        PrintJson.printJsonObj(resq, map);
+
+    }
+
+    private void deleteRemark(HttpServletRequest req, HttpServletResponse resq) {
+        System.out.println("执行删除市场活动备注信息的操作");
+        String remarkId =  req.getParameter("remarkId");
+        ActivityService aService = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+        boolean flag = aService.deleteRemark(remarkId);
+        PrintJson.printJsonFlag(resq, flag);
+    }
+
+    private void getRemarkListByAid(HttpServletRequest req, HttpServletResponse resq) {
+        System.out.println("根据市场活动id，取得备注信息列表");
+        String activityId = req.getParameter("activityId");
+        ActivityService aService = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+        List<ActivityRemark> arList = aService.getRemarkListByAid(activityId);
+        PrintJson.printJsonObj(resq, arList);
     }
 
     private void detail(HttpServletRequest req, HttpServletResponse resq) throws ServletException, IOException{

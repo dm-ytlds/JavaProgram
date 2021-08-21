@@ -243,7 +243,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 						* 	用户列表
 						* 	市场活动对象
 						* data形式：
-						* 	{"userList" : [{user1}, {user2}, ...], "a" : {市场活动}}
+						* 	{"userList" : [{user1}, {user2}, ...], "activity" : {市场活动}}
 						* */
 						var html = "<option></option>";
 						$.each(data.userList, function (i, n) {
@@ -425,18 +425,18 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 
 								</select>
 							</div>
-							<label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
+							<label for="edit-name" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
 							<div class="col-sm-10" style="width: 300px;">
 								<input type="text" class="form-control" id="edit-name">
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
+							<label for="edit-startDate" class="col-sm-2 control-label">开始日期</label>
 							<div class="col-sm-10" style="width: 300px;">
 								<input type="text" class="form-control time" id="edit-startDate">
 							</div>
-							<label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
+							<label for="edit-endDate" class="col-sm-2 control-label">结束日期</label>
 							<div class="col-sm-10" style="width: 300px;">
 								<input type="text" class="form-control time" id="edit-endDate">
 							</div>

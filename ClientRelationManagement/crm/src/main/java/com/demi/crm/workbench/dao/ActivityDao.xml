@@ -106,21 +106,21 @@
     <!--通过id获取市场活动信息-->
     <select id="getById" resultType="Activity">
         select * from tbl_activity
-        where   id = #{id}
+        where   id=#{id}
     </select>
 
     <!--修改市场活动信息-->
     <update id="update">
         update tbl_activity set
-            owner = #{owner},
-            name = #{name},
-            startDate = #{startDate},
-            endDate = #{endDate},
-            cost = #{cost},
-            description = #{description},
-            editTime = #{editTime},
-            editBy = #{editBy}
-        where id = #{id}
+            owner=#{owner},
+            name=#{name},
+            startDate=#{startDate},
+            endDate=#{endDate},
+            cost=#{cost},
+            description=#{description},
+            editTime=#{editTime},
+            editBy=#{editBy}
+        where id=#{id}
 
     </update>
 
@@ -141,8 +141,58 @@
 
         from tbl_activity a
         join tbl_user u
-        on a.owner = u.id
-        where a.id = #{id}
+        on a.owner=u.id
+        where a.id=#{id}
+    </select>
+
+    <!--通过线索id查询市场活动列表-->
+    <select id="getActivityListByClueId" resultType="Activity">
+        select
+            car.id as id,
+            a.name,
+            a.startDate,
+            a.endDate,
+            u.name as owner
+        from tbl_activity a
+        join tbl_user u
+        on a.owner=u.id
+        join tbl_clue_activity_relation car
+        on a.id=car.activityId
+        where car.clueId=#{clueId}
+    </select>
+
+    <!--实现关联活动模态窗口的模糊查询-->
+    <select id="getActivityListByNameAndNotByClueId" resultType="Activity">
+        select
+            a.id,
+            a.name,
+            a.startDate,
+            a.endDate,
+            u.name as owner
+        from tbl_activity a
+        join tbl_user u
+        on a.owner=u.id
+        where a.name like '%' #{aname} '%' and a.id not in (
+            select
+                activityId
+            from tbl_clue_activity_relation
+            where clueId=#{clueId}
+        )
+    </select>
+
+    <!--通过市场活动名称模糊查询-->
+    <select id="getActivityListByName" resultType="Activity">
+        select
+            a.id,
+            a.name,
+            u.name as owner,
+            a.startDate,
+            a.endDate
+        from tbl_activity a
+        join tbl_user u
+        on a.owner=u.id
+        where a.name like '%' #{aname} '%'
+
     </select>
 </mapper>
 

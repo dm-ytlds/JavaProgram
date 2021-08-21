@@ -20,4 +20,42 @@
             #{aid}
         </foreach>
     </delete>
+    <!--查询备注信息，在市场活动详情窗口展示-->
+    <select id="getRemarkListByAid" resultType="ActivityRemark">
+        select * from tbl_activity_remark where activityId = #{activityId}
+    </select>
+    <!--删除备注信息-->
+    <delete id="deleteRemark">
+        delete from tbl_activity_remark where id = #{remarkId}
+    </delete>
+    <!--添加备注信息-->
+    <insert id="saveRemark">
+        insert into tbl_activity_remark(
+            id,
+            noteContent,
+            createTime,
+            createBy,
+            editFlag,
+            activityId
+        )
+        values (
+            #{id},
+            #{noteContent},
+            #{createTime},
+            #{createBy},
+            #{editFlag},
+            #{activityId}
+        )
+    </insert>
+
+    <!--修改备注信息，填值操作-->
+    <update id="updateRemark">
+        update tbl_activity_remark
+        set
+            noteContent = #{noteContent},
+            editTime = #{editTime},
+            editBy = #{editBy},
+            editFlag = #{editFlag}
+        where id = #{id}
+    </update>
 </mapper>

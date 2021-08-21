@@ -7,6 +7,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 <html>
 <head>
 	<base href="<%=basePath%>">
+    <base target="_self"/>
 <meta charset="UTF-8">
 
 <link href="jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
@@ -17,7 +18,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 
 	//默认情况下取消和保存按钮是隐藏的
 	var cancelAndSaveBtnDefault = true;
-	
+
 	$(function(){
 		$("#remark").focus(function(){
 			if(cancelAndSaveBtnDefault){
@@ -52,8 +53,266 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 		$(".myHref").mouseout(function(){
 			$(this).children("span").css("color","#E6E6E6");
 		});
+
+		// 页面加载完毕后，展现该市场活动关联的备注信息表
+		showRemarkList();
+
+		// 实现备注信息后面图标的动态效果
+		$("#remarkBody").on("mouseover", ".remarkDiv", function () {
+			$(this).children("div").children("div").show();
+		})
+		$("#remarkBody").on("mouseout", ".remarkDiv", function () {
+			$(this).children("div").children("div").hide();
+		})
+
+		// 为保存按钮提供绑定事件,执行备注信息的添加操作
+		$("#saveRemarkBtn").click(function () {
+			$.ajax({
+				url : "workbench/activity/saveRemark.do",
+				data : {
+					"noteContent" : $.trim($("#remark").val()),
+					"activityId" : "${activity.id}"
+				},
+				type : "post",
+				dataType : "json",
+				success : function (data) {
+
+					/*
+					* data的格式：
+					* 	{"success":true/false, "ar":{备注}}
+					*
+					* */
+                    // 先清空备注信息
+                    $("#remark").val("");
+					if (data.success) {
+						// 添加成功，在备注信息列表中新增一条备注信息
+						var html = "";
+
+						html += '<div id="'+ data.ar.id +'" class="remarkDiv" style="height: 60px;">';
+						html += '<img title="'+ data.ar.createBy +'" src="image/user-thumbnail.png" style="width: 30px; height:30px;">';
+						html += '<div style="position: relative; top: -40px; left: 40px;" >';
+						html += '<h5 id="e'+ data.ar.id +'">' + data.ar.noteContent + '</h5>';
+						html += '<font color="gray">市场活动</font> <font color="gray">-</font> <b>${activity.name}</b> <small style="color: gray;" id="s'+ data.ar.id +'">' + data.ar.createTime + '由' + data.ar.createBy + '</small>';
+						html += '<div style="position: relative; left: 500px; top: -30px; height: 30px; width: 100px; display: none;">';
+						html += '<a class="myHref" href="javascript:void(0);" onclick="editRemark(\''+ data.ar.id +'\')"><span class="glyphicon glyphicon-edit" style="font-size: 20px; color: #FF0000;"></span></a>';
+						html += '&nbsp;&nbsp;&nbsp;&nbsp;';
+						html += '<a class="myHref" href="javascript:void(0);" onclick="deleteRemark(\''+ data.ar.id +'\')"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #FF0000;"></span></a>';
+						html += '</div>';
+						html += '</div>';
+						html += '</div>';
+                        // 从下往上的传值方式
+                        $("#remarkDiv").before(html);
+					} else  {
+						alert("添加备注失败");
+					}
+				}
+			})
+		})
+        /*
+        * 修改模态窗口中备注信息的相关操作
+        * updateRemark();
+        * */
+        $("#updateRemarkBtn").click(function () {
+            // 将获取备注id的操作写在ajax请求的外面，方便回调函数再次使用该值
+            var remarkId = $("#remarkId").val();
+            $.ajax({
+                url : "workbench/activity/updateRemark.do",
+                data : {
+                    "remarkId" : remarkId,
+                    "noteContent" : $.trim($("#noteContent").val())
+                },
+                type : "post",
+                dataType : "json",
+                success : function (data) {
+                    /*
+                        data的结构：
+                            {"success":true/false, "ar":{备注}}
+                     */
+                    if (data.success) {
+                        // 修改备注成功
+                        // 需要更新：noteContent, editTime, editBy
+                        $("#e" + remarkId).html(data.ar.noteContent);
+                        $("#s" + remarkId).html(data.ar.editTime + " 由 " + data.ar.editBy);
+                        // 更新内容后，关闭模态窗口
+                        $("#editRemarkModal").modal("hide");
+                    } else
+                        alert("修改备注失败");
+                }
+            })
+        })
+
+        /*
+        * 在市场活动详情的模态窗口中，
+        * 实现修改当前市场活动的信息
+        * */
+        // 为编辑市场活动按钮绑定事件，打开市场活动信息的模态窗口
+        $("#editActivityBtn").click(function () {
+            /*
+            * 通过ajax请求获取后台现有的市场活动信息，展示在市场活动模态窗口中
+            * 首先对所有者下拉框中填值
+            * */
+
+            $.ajax({
+                url : "workbench/activity/getUserListAndActivity.do",
+                data : {
+                    "id" : "${activity.id}"
+                },
+                type : "get",
+                dataType : "json",
+                success : function (data) {
+                    /*
+                    * data的结构：
+                    *   {"userList":[{user}, ...], "activity": {市场活动信息}}
+                    * */
+                    // 拼接下拉框
+                    /*
+                      <option>zhangsan</option>
+                      <option>lisi</option>
+                      <option>wangwu</option>
+                    */
+                    var html = "<option></option>";
+                    $.each(data.userList, function (i, n) {
+                        html += "<option value='" + n.id + "'>" + n.name + "</option>";
+                    })
+                    // 将从后台获取的用户名列表传给所有者下拉框
+                    $("#edit-owner").html(html);
+                    // 处理从后台传来的单条市场活动信息，展示给前台
+                    $("#edit-id").val(data.activity.id);
+                    $("#edit-owner").val(data.activity.owner);
+                    $("#edit-name").val(data.activity.name);
+                    $("#edit-startDate").val(data.activity.startDate);
+                    $("#edit-endDate").val(data.activity.endDate);
+                    $("#edit-cost").val(data.activity.cost);
+                    $("#edit-description").val(data.activity.description);
+
+                    // 填好值后，才展示修改市场活动的模态窗口
+                    $("#editActivityModal").modal("show");
+                }
+            })
+
+        })
+
+        // 展示完模态窗口后，为更新按钮绑定更新事件，完成修改市场活动操作
+        // 向后台传值的操作，ajax请求实现
+        $("#updateBtn").click(function () {
+            $.ajax({
+                url : "workbench/activity/update.do",
+                data : {
+                    "id" : $("#edit-id").val(),
+                    "owner" : $.trim($("#edit-owner").val()),
+                    "name" : $.trim($("#edit-name").val()),
+                    "startDate" : $.trim($("#edit-startDate").val()),
+                    "endDate" : $.trim($("#edit-endDate").val()),
+                    "cost" : $.trim($("#edit-cost").val()),
+                    "description" : $.trim($("#edit-description").val())
+                },
+                type : "post",
+                dataType : "json",
+                success : function (data) {
+                    if (data.success) {
+                        pageList($("#activityPage").bs_pagination('getOption', 'currentPage'), $("#activityPage").bs_pagination('getOption', 'rowsPerPage'));
+                        // 将修改模态窗口中的值展示在市场活动详细信息页面
+
+
+                        // 关闭模态窗口
+                        $("#editActivityModal").modal("hide");
+                        // window.parent.location.reload("workbench/activity/detail.jsp");
+                    } else
+                        alert("更新市场活动信息失败");
+                }
+            })
+        })
+
 	});
-	
+
+	/*
+	* 通过市场活动id，展现该市场活动关联的备注信息表
+	* */
+	function showRemarkList() {
+		$.ajax({
+			url : "workbench/activity/getRemarkListByAid.do",
+			data : {
+				"activityId" : "${activity.id}"
+			},
+			type : "get",
+			dataType : "json",
+			success : function (data) {
+				/*
+				* data的结构：[{备注1}, {备注2}, {备注3}, ...]
+				* */
+				var html = "";
+				$.each(data, function (i, n) {
+					html += '<div id="'+ n.id +'" class="remarkDiv" style="height: 60px;">';
+					html += '<img title="'+ (n.editFlag==0?n.createBy : n.editBy) +'" src="image/user-thumbnail.png" style="width: 30px; height:30px;">';
+					html += '<div style="position: relative; top: -40px; left: 40px;" >';
+					html += '<h5 id="e' + n.id +'">' + n.noteContent + '</h5>';
+					html += '<font color="gray">市场活动</font> <font color="gray">-</font> <b>${activity.name}</b> <small style="color: gray;" id="s'+ n.id +'">' + (n.editFlag==0?n.createTime : n.editTime) + '由' + (n.editFlag==0?n.createBy : n.editBy) + '</small>';
+					html += '<div style="position: relative; left: 500px; top: -30px; height: 30px; width: 100px; display: none;">';
+					html += '<a class="myHref" href="javascript:void(0);" onclick="editRemark(\'' + n.id + '\')"><span class="glyphicon glyphicon-edit" style="font-size: 20px; color: #FF0000;"></span></a>';
+					html += '&nbsp;&nbsp;&nbsp;&nbsp;';
+					html += '<a class="myHref" href="javascript:void(0);" onclick="deleteRemark(\'' + n.id + '\')"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #FF0000;"></span></a>';
+					html += '</div>';
+					html += '</div>';
+					html += '</div>';
+				})
+				// 从下往上的传值方式
+				$("#remarkDiv").before(html);
+			}
+		})
+	}
+
+
+
+	/*
+	* 修改当前市场活动信息
+	* */
+
+	/*
+	* 删除备注信息
+	* */
+	deleteRemark = function (remarkId) {
+		// 后台取数据，ajax
+		$.ajax({
+			url : "workbench/activity/deleteRemark.do",
+			data: {
+				"remarkId" : remarkId
+			},
+			type: "post",
+			dataType: "json",
+			success: function (data) {
+				if (data.success) {
+					// 删除成功，刷新备注信息列表
+					// 这种方法刷新出问题：每一次
+					// showRemarkList();
+
+					$("#" + remarkId).remove();
+
+				} else {
+					alert("删除备注失败");
+				}
+			}
+		})
+	}
+
+    /**
+     * 修改备注信息操作
+     */
+    // 首先打开模态窗口的相关操作：先对模态窗口中的隐藏域id值赋值；在把已有的备注信息赋给备注框；最后展示修改备注的模态窗口
+    editRemark = function (remarkId) {
+        // // test
+        // alert("123");
+        // 将模态窗口中隐藏域中的id进行赋值，材质到是修改的哪一条备注
+        $("#remarkId").val(remarkId);
+        /**
+         * 从前端直接获取当前备注的信息是什么
+         */
+        var noteContent = $("#e" + remarkId).html();
+        // 将前端备注信息noteContent赋给当前的修改备注模态窗口中文本框
+        $("#noteContent").val(noteContent);
+        // 展示备注修改模态窗口
+        $("#editRemarkModal").modal("show");
+    }
+
 </script>
 
 </head>
@@ -102,44 +361,45 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                 <div class="modal-body">
 
                     <form class="form-horizontal" role="form">
-
+                        <%--执行修改操作的id值--%>
+                        <input type="hidden" id="edit-id"/>
                         <div class="form-group">
                             <label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <select class="form-control" id="edit-marketActivityOwner">
-                                    <option>zhangsan</option>
+                                <select class="form-control" id="edit-owner">
+                                    <%--<option>zhangsan</option>
                                     <option>lisi</option>
-                                    <option>wangwu</option>
+                                    <option>wangwu</option>--%>
                                 </select>
                             </div>
                             <label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-marketActivityName" value="发传单">
+                                <input type="text" class="form-control" id="edit-name">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-startTime" value="2020-10-10">
+                                <input type="text" class="form-control" id="edit-startDate">
                             </div>
                             <label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-endTime" value="2020-10-20">
+                                <input type="text" class="form-control" id="edit-endDate">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-cost" class="col-sm-2 control-label">成本</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-cost" value="5,000">
+                                <input type="text" class="form-control" id="edit-cost">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-describe" class="col-sm-2 control-label">描述</label>
                             <div class="col-sm-10" style="width: 81%;">
-                                <textarea class="form-control" rows="3" id="edit-describe">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
+                                <textarea class="form-control" rows="3" id="edit-description"></textarea>
                             </div>
                         </div>
 
@@ -148,7 +408,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">更新</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="updateBtn">更新</button>
                 </div>
             </div>
         </div>
@@ -160,12 +420,12 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 	</div>
 	
 	<!-- 大标题 -->
-	<div style="position: relative; left: 40px; top: -30px;">
+	<div style="position: relative; left: 40px; top: -30px;" id="showDetail">
 		<div class="page-header">
-			<h3>市场活动-发传单 <small>2020-10-10 ~ 2020-10-20</small></h3>
+			<h3>市场活动-${activity.name} <small>${activity.startDate} ~ ${activity.endDate}</small></h3>
 		</div>
 		<div style="position: relative; height: 50px; width: 250px;  top: -72px; left: 700px;">
-			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span class="glyphicon glyphicon-edit"></span> 编辑</button>
+			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal" id="editActivityBtn"><span class="glyphicon glyphicon-edit"></span> 编辑</button>
 			<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除</button>
 		</div>
 	</div>
@@ -174,41 +434,41 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 	<div style="position: relative; top: -70px;">
 		<div style="position: relative; left: 40px; height: 30px;">
 			<div style="width: 300px; color: gray;">所有者</div>
-			<div style="width: 300px;position: relative; left: 200px; top: -20px;"><b>zhangsan</b></div>
+			<div style="width: 300px;position: relative; left: 200px; top: -20px;" id="owner"><b>${activity.owner}</b></div>
 			<div style="width: 300px;position: relative; left: 450px; top: -40px; color: gray;">名称</div>
-			<div style="width: 300px;position: relative; left: 650px; top: -60px;"><b>发传单</b></div>
+			<div style="width: 300px;position: relative; left: 650px; top: -60px;" id="name"><b>${activity.name}</b></div>
 			<div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px;"></div>
 			<div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px; left: 450px;"></div>
 		</div>
 
 		<div style="position: relative; left: 40px; height: 30px; top: 10px;">
 			<div style="width: 300px; color: gray;">开始日期</div>
-			<div style="width: 300px;position: relative; left: 200px; top: -20px;"><b>2020-10-10</b></div>
+			<div style="width: 300px;position: relative; left: 200px; top: -20px;" id="startDate"><b>${activity.startDate}</b></div>
 			<div style="width: 300px;position: relative; left: 450px; top: -40px; color: gray;">结束日期</div>
-			<div style="width: 300px;position: relative; left: 650px; top: -60px;"><b>2020-10-20</b></div>
+			<div style="width: 300px;position: relative; left: 650px; top: -60px;" id="endDate"><b>${activity.endDate}</b></div>
 			<div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px;"></div>
 			<div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px; left: 450px;"></div>
 		</div>
 		<div style="position: relative; left: 40px; height: 30px; top: 20px;">
 			<div style="width: 300px; color: gray;">成本</div>
-			<div style="width: 300px;position: relative; left: 200px; top: -20px;"><b>4,000</b></div>
+			<div style="width: 300px;position: relative; left: 200px; top: -20px;" id="cost"><b>${activity.cost}</b></div>
 			<div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -20px;"></div>
 		</div>
 		<div style="position: relative; left: 40px; height: 30px; top: 30px;">
 			<div style="width: 300px; color: gray;">创建者</div>
-			<div style="width: 500px;position: relative; left: 200px; top: -20px;"><b>zhangsan&nbsp;&nbsp;</b><small style="font-size: 10px; color: gray;">2017-01-18 10:10:10</small></div>
+			<div style="width: 500px;position: relative; left: 200px; top: -20px;" id="createBy"><b>${activity.createBy}&nbsp;&nbsp;</b><small style="font-size: 10px; color: gray;" id="createTime">${activity.createTime}</small></div>
 			<div style="height: 1px; width: 550px; background: #D5D5D5; position: relative; top: -20px;"></div>
 		</div>
 		<div style="position: relative; left: 40px; height: 30px; top: 40px;">
 			<div style="width: 300px; color: gray;">修改者</div>
-			<div style="width: 500px;position: relative; left: 200px; top: -20px;"><b>zhangsan&nbsp;&nbsp;</b><small style="font-size: 10px; color: gray;">2017-01-19 10:10:10</small></div>
+			<div style="width: 500px;position: relative; left: 200px; top: -20px;" id="editBy"><b>${activity.editBy}&nbsp;&nbsp;</b><small style="font-size: 10px; color: gray;" id="editTime">${activity.editTime}</small></div>
 			<div style="height: 1px; width: 550px; background: #D5D5D5; position: relative; top: -20px;"></div>
 		</div>
 		<div style="position: relative; left: 40px; height: 30px; top: 50px;">
-			<div style="width: 300px; color: gray;">描述</div>
+			<div style="width: 300px; color: gray;" id="description">描述</div>
 			<div style="width: 630px;position: relative; left: 200px; top: -20px;">
 				<b>
-					市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等
+					${activity.description}
 				</b>
 			</div>
 			<div style="height: 1px; width: 850px; background: #D5D5D5; position: relative; top: -20px;"></div>
@@ -216,12 +476,12 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 	</div>
 	
 	<!-- 备注 -->
-	<div style="position: relative; top: 30px; left: 40px;">
+	<div id="remarkBody" style="position: relative; top: 30px; left: 40px;">
 		<div class="page-header">
 			<h4>备注</h4>
 		</div>
 		
-		<!-- 备注1 -->
+		<%--<!-- 备注1 -->
 		<div class="remarkDiv" style="height: 60px;">
 			<img title="zhangsan" src="image/user-thumbnail.png" style="width: 30px; height:30px;">
 			<div style="position: relative; top: -40px; left: 40px;" >
@@ -247,14 +507,14 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					<a class="myHref" href="javascript:void(0);"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #E6E6E6;"></span></a>
 				</div>
 			</div>
-		</div>
+		</div>--%>
 		
 		<div id="remarkDiv" style="background-color: #E6E6E6; width: 870px; height: 90px;">
 			<form role="form" style="position: relative;top: 10px; left: 10px;">
 				<textarea id="remark" class="form-control" style="width: 850px; resize : none;" rows="2"  placeholder="添加备注..."></textarea>
 				<p id="cancelAndSaveBtn" style="position: relative;left: 737px; top: 10px; display: none;">
 					<button id="cancelBtn" type="button" class="btn btn-default">取消</button>
-					<button type="button" class="btn btn-primary">保存</button>
+					<button type="button" class="btn btn-primary" id="saveRemarkBtn">保存</button>
 				</p>
 			</form>
 		</div>
