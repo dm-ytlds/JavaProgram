@@ -8,6 +8,7 @@ import com.demi.crm.vo.PaginationVO;
 import com.demi.crm.workbench.domain.Activity;
 import com.demi.crm.workbench.domain.ActivityRemark;
 import com.demi.crm.workbench.domain.Clue;
+import com.demi.crm.workbench.domain.Tran;
 import com.demi.crm.workbench.service.ActivityService;
 import com.demi.crm.workbench.service.ClueService;
 import com.demi.crm.workbench.service.impl.ActivityServiceImpl;
@@ -53,17 +54,42 @@ public class ClueController extends HttpServlet {
         }
     }
 
-    private void convert(HttpServletRequest req, HttpServletResponse resq) {
+    private void convert(HttpServletRequest req, HttpServletResponse resq) throws IOException {
         System.out.println("执行转换页面的线索转换操作");
-        String activityId = req.getParameter("clueId");
+        String clueId = req.getParameter("clueId");
         String flag = req.getParameter("flag");
+        //
+        String createBy = ((User)req.getSession().getAttribute("user")).getName();
         // 首先的判断是表单传的数据（有创建交易的情况），还是挂参数传的数据（没有创建交易的情况）
+        Tran t = null;
         if ("a".equals(flag)) {
             // 有创建交易的情况
-            
-        } else {
-            // 没有创建交易的情况
+            t = new Tran();
+            // 接收交易表单中的参数
+            String id = UUIDUtil.getUUID();
+            String money = req.getParameter("money");
+            String name = req.getParameter("name");
+            String exceptedDate = req.getParameter("exceptedDate");
+            String stage = req.getParameter("stage");
+            String activityId = req.getParameter("activityId");
 
+            String createTime = DateTimeUtil.getSysTime();
+
+            t.setId(id);
+            t.setMoney(money);
+            t.setName(name);
+            t.setExpectedDate(exceptedDate);
+            t.setStage(stage);
+            t.setActivityId(activityId);
+            t.setCreateBy(createBy);
+            t.setCreateTime(createTime);
+        }
+        //
+        ClueService cs = (ClueService) ServiceFactory.getService(new ClueServiceImpl());
+        boolean flag01 = cs.convert(clueId, t, createBy);
+        // 重定向
+        if (flag01) {
+            resq.sendRedirect(req.getContextPath() + "/workbench/clue/index.jsp");
         }
     }
 

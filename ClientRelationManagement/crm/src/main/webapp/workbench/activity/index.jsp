@@ -40,7 +40,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 
 			/*
 				操作模态窗口的方式：
-					需要操作的模态窗口的jQuery对象，调用modal方法，为该方法床底参数 show:打开模态窗口， hide:关闭模态窗口
+					需要操作的模态窗口的jQuery对象，调用modal方法，为该方法传入参数 show:打开模态窗口， hide:关闭模态窗口
 			 */
 
 			// 通过后台，取数据，获得市场活动中创建模态窗口的用户信息列表，组成下拉列表框
@@ -70,10 +70,11 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 
 					/*
 						将当前登录设置为下拉框的默认选项.jQuery提供的简单方式如下：
-						(1) 取得当前登录的用户id赋值给一个变量  var userId = "${user.id}";
-						(2) 在js代码中使用el表达式，el表达式嵌套在字符串中  $("#create-owner").val(userId);
+						(1) 取得当前登录的用户id赋值给一个变量
+						(2) 在js代码中使用el表达式，el表达式嵌套在字符串中 var userId = "${user.id}";
 					 */
 					var userId = "${user.id}";
+					// 赋值操作
 					$("#create-owner").val(userId);
 
 					// 打开模态窗口，放在下拉框实现之后

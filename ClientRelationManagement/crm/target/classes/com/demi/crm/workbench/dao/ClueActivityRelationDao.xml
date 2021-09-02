@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.demi.crm.workbench.dao.ClueActivityRelationDao">
+
+    <!--解除市场活动的关联-->
+	<delete id="unBund">
+        delete from tbl_clue_activity_relation
+        where id = #{id}
+    </delete>
+
+    <!--关联市场活动-->
+  	<insert id="bund">
+        insert into tbl_clue_activity_relation(id,clueId,activityId) values (#{id},#{clueId},#{activityId})
+    </insert>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
